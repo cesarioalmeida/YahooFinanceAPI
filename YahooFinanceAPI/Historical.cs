@@ -1,17 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
-using System.Threading.Tasks;
-using YahooFinanceAPI.Models;
-
-namespace YahooFinanceAPI
+﻿namespace YahooFinanceAPI
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Net;
+    using System.Threading.Tasks;
+
+    using YahooFinanceAPI.Models;
+
     /// <summary>
     /// Class for fetching stock historical price from Yahoo Finance
     /// Copyright Dennis Lee
     /// 3 Nov 2017
-    ///
     /// </summary>
     public class Historical
     {
