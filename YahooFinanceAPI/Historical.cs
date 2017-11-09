@@ -29,7 +29,10 @@
             try
             {
                 var csvData = await GetRawAsync(symbol, start, end).ConfigureAwait(false);
-                if (csvData != null) return await ParsePriceAsync(csvData).ConfigureAwait(false);
+                if (csvData != null)
+                {
+                    return await ParsePriceAsync(csvData).ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {
@@ -51,7 +54,10 @@
             try
             {
                 var csvData = await GetRawAsync(symbol, start, end, "div").ConfigureAwait(false);
-                if (csvData != null) return await ParseDivAsync(csvData).ConfigureAwait(false);
+                if (csvData != null)
+                {
+                    return await ParseDivAsync(csvData).ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {
@@ -76,11 +82,13 @@
             {
                 var url = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events={3}&crumb={4}";
 
-                //if no token found, refresh it
+                // if no token found, refresh it
                 if (string.IsNullOrEmpty(Token.Cookie) || string.IsNullOrEmpty(Token.Crumb))
                 {
                     if (!await Token.RefreshAsync(symbol).ConfigureAwait(false))
+                    {
                         return await GetRawAsync(symbol, start, end).ConfigureAwait(false);
+                    }
                 }
 
                 url = string.Format(url, symbol, Math.Round(DateTimeToUnixTimestamp(start), 0), Math.Round(DateTimeToUnixTimestamp(end), 0), eventType, Token.Crumb);
@@ -95,12 +103,18 @@
             {
                 var response = (HttpWebResponse)webEx.Response;
 
-                //Re-fetching token
+                // Re-fetching token
                 if (response.StatusCode != HttpStatusCode.Unauthorized ||
-                    response.StatusCode != HttpStatusCode.NotFound) throw;
+                    response.StatusCode != HttpStatusCode.NotFound)
+                {
+                    throw;
+                }
+
                 Debug.Print(webEx.Message);
-                Token.Cookie = "";
-                Token.Crumb = "";
+
+                Token.Cookie = string.Empty;
+                Token.Crumb = string.Empty;
+
                 Debug.Print("Re-fetch token");
                 return await GetRawAsync(symbol, start, end).ConfigureAwait(false);
             }
@@ -131,15 +145,21 @@
                 {
                     var rows = csvData.Split(Convert.ToChar(10));
 
-                    //row(0) was ignored because is column names
-                    //data is read from oldest to latest
+                    // row(0) was ignored because is column names
+                    // data is read from oldest to latest
                     for (var i = 1; i <= rows.Length - 1; i++)
                     {
                         var row = rows[i];
-                        if (string.IsNullOrEmpty(row)) continue;
+                        if (string.IsNullOrEmpty(row))
+                        {
+                            continue;
+                        }
 
                         var cols = row.Split(',');
-                        if (cols[1] == "null") continue;
+                        if (cols[1] == "null")
+                        {
+                            continue;
+                        }
 
                         var itm = new HistoryPrice
                         {
@@ -151,8 +171,11 @@
                             AdjClose = Convert.ToDouble(cols[5])
                         };
 
-                        //fixed issue in some currencies quote (e.g: SGDAUD=X)
-                        if (cols[6] != "null") itm.Volume = Convert.ToDouble(cols[6]);
+                        // fixed issue in some currencies quote (e.g: SGDAUD=X)
+                        if (cols[6] != "null")
+                        {
+                            itm.Volume = Convert.ToDouble(cols[6]);
+                        }
 
                         lst.Add(itm);
                     }
@@ -180,15 +203,21 @@
                 {
                     var rows = csvData.Split(Convert.ToChar(10));
 
-                    //row(0) was ignored because is column names
-                    //data is read from oldest to latest
+                    // row(0) was ignored because is column names
+                    // data is read from oldest to latest
                     for (var i = 1; i <= rows.Length - 1; i++)
                     {
                         var row = rows[i];
-                        if (string.IsNullOrEmpty(row)) continue;
+                        if (string.IsNullOrEmpty(row))
+                        {
+                            continue;
+                        }
 
                         var cols = row.Split(',');
-                        if (cols[1] == "null") continue;
+                        if (cols[1] == "null")
+                        {
+                            continue;
+                        }
 
                         var itm = new Dividend
                         {
@@ -210,11 +239,11 @@
 
         #region Unix Timestamp Converter
 
-        //credits to Dmitry Fedorkov
-        //reference http://stackoverflow.com/questions/249760/how-to-convert-a-unix-timestamp-to-datetime-and-vice-versa
+        // credits to Dmitry Fedorkov
+        // reference http://stackoverflow.com/questions/249760/how-to-convert-a-unix-timestamp-to-datetime-and-vice-versa
         private static double DateTimeToUnixTimestamp(DateTime dateTime)
         {
-            //Unix timestamp Is seconds past epoch
+            // Unix timestamp Is seconds past epoch
             return (dateTime.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 

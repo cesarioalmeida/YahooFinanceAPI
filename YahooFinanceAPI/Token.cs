@@ -1,37 +1,27 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-namespace YahooFinanceAPI
+﻿namespace YahooFinanceAPI
 {
+    using System;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Net;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+
     /// <summary>
-    /// Class for fetching token (cookie and crumb) from Yahoo Finance
-    /// Copyright Dennis Lee
-    /// 3 Nov 2017
-    ///
+    ///     Class for fetching token (cookie and crumb) from Yahoo Finance
+    ///     Copyright Dennis Lee
+    ///     3 Nov 2017
     /// </summary>
     public class Token
     {
-        #region Public Members
-
-        public static string Cookie { get; set; }
-        public static string Crumb { get; set; }
-
-        #endregion Public Members
-
-        #region Private Members
-
         private static Regex _regexCrumb;
 
-        #endregion Private Members
+        public static string Cookie { get; set; }
 
-        #region Public Methods
+        public static string Crumb { get; set; }
 
         /// <summary>
-        /// Refresh cookie and crumb value
+        ///     Refresh cookie and crumb value
         /// </summary>
         /// <param name="symbol">Stock ticker symbol</param>
         /// <returns></returns>
@@ -60,10 +50,16 @@ namespace YahooFinanceAPI
                     using (var stream = response.GetResponseStream())
                     {
                         if (stream != null)
+                        {
                             html = await new StreamReader(stream).ReadToEndAsync().ConfigureAwait(false);
+                        }
                     }
 
-                    if (html.Length < 5000) return false;
+                    if (html.Length < 5000)
+                    {
+                        return false;
+                    }
+
                     var crumb = await GetCrumbAsync(html).ConfigureAwait(false);
 
                     if (crumb != null)
@@ -83,56 +79,55 @@ namespace YahooFinanceAPI
             return false;
         }
 
-        #endregion Public Methods
-
-        #region Private Methods
-
         /// <summary>
-        /// Get crumb value from HTML
+        ///     Get crumb value from HTML
         /// </summary>
         /// <param name="html">HTML code</param>
         /// <returns></returns>
         private static async Task<string> GetCrumbAsync(string html)
         {
-            return await Task.Run(() =>
-            {
-                string crumb = null;
+            return await Task.Run(
+                       () =>
+                           {
+                               string crumb = null;
 
-                try
-                {
-                    //initialize on first time use
-                    if (_regexCrumb == null)
-                        _regexCrumb = new Regex("CrumbStore\":{\"crumb\":\"(?<crumb>.+?)\"}",
-                            RegexOptions.CultureInvariant | RegexOptions.Compiled);
+                               try
+                               {
+                                   // initialize on first time use
+                                   if (_regexCrumb == null)
+                                   {
+                                       _regexCrumb = new Regex("CrumbStore\":{\"crumb\":\"(?<crumb>.+?)\"}", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+                                   }
 
-                    var matches = _regexCrumb.Matches(html);
+                                   var matches = _regexCrumb.Matches(html);
 
-                    if (matches.Count > 0)
-                    {
-                        crumb = matches[0].Groups["crumb"].Value;
+                                   if (matches.Count > 0)
+                                   {
+                                       crumb = matches[0].Groups["crumb"].Value;
 
-                        //fixed unicode character 'SOLIDUS'
-                        if (crumb.Length != 11)
-                            crumb = crumb.Replace("\\u002F", "/");
-                    }
-                    else
-                    {
-                        Debug.Print("Regex no match");
-                    }
+                                       // fixed unicode character 'SOLIDUS'
+                                       if (crumb.Length != 11)
+                                       {
+                                           crumb = crumb.Replace("\\u002F", "/");
+                                       }
+                                   }
+                                   else
+                                   {
+                                       Debug.Print("Regex no match");
+                                   }
 
-                    //prevent regex memory leak
-                    matches = null;
-                }
-                catch (Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
+                                   // prevent regex memory leak
+                                   // ReSharper disable once RedundantAssignment
+                                   matches = null;
+                               }
+                               catch (Exception ex)
+                               {
+                                   Debug.Print(ex.Message);
+                               }
 
-                GC.Collect();
-                return crumb;
-            }).ConfigureAwait(false);
+                               GC.Collect();
+                               return crumb;
+                           }).ConfigureAwait(false);
         }
-
-        #endregion Private Methods
     }
 }
