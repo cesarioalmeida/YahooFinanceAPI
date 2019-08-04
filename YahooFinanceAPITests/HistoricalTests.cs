@@ -8,7 +8,7 @@
     [TestFixture]
     public class HistoricalTests
     {
-        private static string symbol = "C31.SI";
+        private static string symbol = "O39.SI";
 
         [Test]
         public void GetDividendAsyncTest()
@@ -23,7 +23,7 @@
         [Test]
         public void GetPriceAsyncTest()
         {
-            var prices = Historical.GetPriceAsync(symbol, DateTime.Now.AddDays(-20), DateTime.Now).Result;
+            var prices = Historical.GetPriceAsync(symbol, DateTime.Now.AddYears(-1), DateTime.Now).Result;
 
             Assert.NotNull(prices);
             Assert.IsTrue(prices.Any());
