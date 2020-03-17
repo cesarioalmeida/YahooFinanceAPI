@@ -21,10 +21,10 @@
         public static string Crumb { get; set; }
 
         /// <summary>
-        ///     Refresh cookie and crumb value
+        /// Refresh cookie and crumb value
         /// </summary>
-        /// <param name="symbol">Stock ticker symbol</param>
-        /// <returns></returns>
+        /// <param name="symbol">Stock ticker symbol.</param>
+        /// <returns>Boolean indicating whether the refresh was successful or not</returns>
         public static async Task<bool> RefreshAsync(string symbol = "SPY")
         {
             try
@@ -32,9 +32,9 @@
                 Cookie = string.Empty;
                 Crumb = string.Empty;
 
-                const string urlScrape = "https://finance.yahoo.com/quote/{0}?p={0}";
+                const string UrlScrape = "https://finance.yahoo.com/quote/{0}?p={0}";
 
-                var url = string.Format(urlScrape, symbol);
+                var url = string.Format(UrlScrape, symbol);
 
                 var request = (HttpWebRequest)WebRequest.Create(url);
 
@@ -83,51 +83,51 @@
         ///     Get crumb value from HTML
         /// </summary>
         /// <param name="html">HTML code</param>
-        /// <returns></returns>
-        private static async Task<string> GetCrumbAsync(string html)
+        /// <returns>The crumb.</returns>
+        private static Task<string> GetCrumbAsync(string html)
         {
-            return await Task.Run(
-                       () =>
-                           {
-                               string crumb = null;
+            return Task.Run(
+                () =>
+                    {
+                        string crumb = null;
 
-                               try
-                               {
-                                   // initialize on first time use
-                                   if (_regexCrumb == null)
-                                   {
-                                       _regexCrumb = new Regex("CrumbStore\":{\"crumb\":\"(?<crumb>.+?)\"}", RegexOptions.CultureInvariant | RegexOptions.Compiled);
-                                   }
+                        try
+                        {
+                            // initialize on first time use
+                            if (_regexCrumb == null)
+                            {
+                                _regexCrumb = new Regex("CrumbStore\":{\"crumb\":\"(?<crumb>.+?)\"}", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+                            }
 
-                                   var matches = _regexCrumb.Matches(html);
+                            var matches = _regexCrumb.Matches(html);
 
-                                   if (matches.Count > 0)
-                                   {
-                                       crumb = matches[0].Groups["crumb"].Value;
+                            if (matches.Count > 0)
+                            {
+                                crumb = matches[0].Groups["crumb"].Value;
 
-                                       // fixed unicode character 'SOLIDUS'
-                                       if (crumb.Length != 11)
-                                       {
-                                           crumb = crumb.Replace("\\u002F", "/");
-                                       }
-                                   }
-                                   else
-                                   {
-                                       Debug.Print("Regex no match");
-                                   }
+                                // fixed unicode character 'SOLIDUS'
+                                if (crumb.Length != 11)
+                                {
+                                    crumb = crumb.Replace("\\u002F", "/");
+                                }
+                            }
+                            else
+                            {
+                                Debug.Print("Regex no match");
+                            }
 
-                                   // prevent regex memory leak
-                                   // ReSharper disable once RedundantAssignment
-                                   matches = null;
-                               }
-                               catch (Exception ex)
-                               {
-                                   Debug.Print(ex.Message);
-                               }
+                            // prevent regex memory leak
+                            // ReSharper disable once RedundantAssignment
+                            matches = null;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Print(ex.Message);
+                        }
 
-                               GC.Collect();
-                               return crumb;
-                           }).ConfigureAwait(false);
+                        GC.Collect();
+                        return crumb;
+                    });
         }
     }
 }

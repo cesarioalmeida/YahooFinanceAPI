@@ -63,6 +63,7 @@
             {
                 Debug.Print(ex.Message);
             }
+
             return new List<Dividend>();
         }
 
@@ -133,108 +134,108 @@
         /// <summary>
         /// Parse raw historical price data into list
         /// </summary>
-        /// <param name="csvData"></param>
+        /// <param name="csvData">The csv data.</param>
         /// <returns>List of historical price</returns>
-        private static async Task<List<HistoryPrice>> ParsePriceAsync(string csvData)
+        private static Task<List<HistoryPrice>> ParsePriceAsync(string csvData)
         {
-            return await Task.Run(() =>
-            {
-                var lst = new List<HistoryPrice>();
-
-                try
+            return Task.Run(() =>
                 {
-                    var rows = csvData.Split(Convert.ToChar(10));
+                    var lst = new List<HistoryPrice>();
 
-                    // row(0) was ignored because is column names
-                    // data is read from oldest to latest
-                    for (var i = 1; i <= rows.Length - 1; i++)
+                    try
                     {
-                        var row = rows[i];
-                        if (string.IsNullOrEmpty(row))
+                        var rows = csvData.Split(Convert.ToChar(10));
+
+                        // row(0) was ignored because is column names
+                        // data is read from oldest to latest
+                        for (var i = 1; i <= rows.Length - 1; i++)
                         {
-                            continue;
+                            var row = rows[i];
+                            if (string.IsNullOrEmpty(row))
+                            {
+                                continue;
+                            }
+
+                            var cols = row.Split(',');
+                            if (cols[1] == "null")
+                            {
+                                continue;
+                            }
+
+                            var itm = new HistoryPrice
+                                          {
+                                              Date = DateTime.Parse(cols[0]),
+                                              Open = Convert.ToDouble(cols[1]),
+                                              High = Convert.ToDouble(cols[2]),
+                                              Low = Convert.ToDouble(cols[3]),
+                                              Close = Convert.ToDouble(cols[4]),
+                                              AdjClose = Convert.ToDouble(cols[5])
+                                          };
+
+                            // fixed issue in some currencies quote (e.g: SGDAUD=X)
+                            if (cols[6] != "null")
+                            {
+                                itm.Volume = Convert.ToDouble(cols[6]);
+                            }
+
+                            lst.Add(itm);
                         }
-
-                        var cols = row.Split(',');
-                        if (cols[1] == "null")
-                        {
-                            continue;
-                        }
-
-                        var itm = new HistoryPrice
-                        {
-                            Date = DateTime.Parse(cols[0]),
-                            Open = Convert.ToDouble(cols[1]),
-                            High = Convert.ToDouble(cols[2]),
-                            Low = Convert.ToDouble(cols[3]),
-                            Close = Convert.ToDouble(cols[4]),
-                            AdjClose = Convert.ToDouble(cols[5])
-                        };
-
-                        // fixed issue in some currencies quote (e.g: SGDAUD=X)
-                        if (cols[6] != "null")
-                        {
-                            itm.Volume = Convert.ToDouble(cols[6]);
-                        }
-
-                        lst.Add(itm);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
+                    catch (Exception ex)
+                    {
+                        Debug.Print(ex.Message);
+                    }
 
-                return lst;
-            }).ConfigureAwait(false);
+                    return lst;
+                });
         }
 
         /// <summary>
         /// Parse raw dividend data into list
         /// </summary>
-        /// <param name="csvData"></param>
+        /// <param name="csvData">The csv data.</param>
         /// <returns>List of dividends</returns>
-        private static async Task<List<Dividend>> ParseDivAsync(string csvData)
+        private static Task<List<Dividend>> ParseDivAsync(string csvData)
         {
-            return await Task.Run(() =>
-            {
-                var lst = new List<Dividend>();
-                try
+            return Task.Run(() =>
                 {
-                    var rows = csvData.Split(Convert.ToChar(10));
-
-                    // row(0) was ignored because is column names
-                    // data is read from oldest to latest
-                    for (var i = 1; i <= rows.Length - 1; i++)
+                    var lst = new List<Dividend>();
+                    try
                     {
-                        var row = rows[i];
-                        if (string.IsNullOrEmpty(row))
+                        var rows = csvData.Split(Convert.ToChar(10));
+
+                        // row(0) was ignored because is column names
+                        // data is read from oldest to latest
+                        for (var i = 1; i <= rows.Length - 1; i++)
                         {
-                            continue;
+                            var row = rows[i];
+                            if (string.IsNullOrEmpty(row))
+                            {
+                                continue;
+                            }
+
+                            var cols = row.Split(',');
+                            if (cols[1] == "null")
+                            {
+                                continue;
+                            }
+
+                            var itm = new Dividend
+                                          {
+                                              Date = DateTime.Parse(cols[0]),
+                                              Div = Convert.ToDouble(cols[1])
+                                          };
+
+                            lst.Add(itm);
                         }
-
-                        var cols = row.Split(',');
-                        if (cols[1] == "null")
-                        {
-                            continue;
-                        }
-
-                        var itm = new Dividend
-                        {
-                            Date = DateTime.Parse(cols[0]),
-                            Div = Convert.ToDouble(cols[1])
-                        };
-
-                        lst.Add(itm);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Print(ex.Message);
-                }
+                    catch (Exception ex)
+                    {
+                        Debug.Print(ex.Message);
+                    }
 
-                return lst;
-            }).ConfigureAwait(false);
+                    return lst;
+                });
         }
 
         #region Unix Timestamp Converter

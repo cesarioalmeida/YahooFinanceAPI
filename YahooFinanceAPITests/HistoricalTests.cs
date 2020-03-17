@@ -1,19 +1,22 @@
-﻿namespace YahooFinanceAPI.Tests
+﻿namespace YahooFinanceAPITests
 {
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using NUnit.Framework;
+
+    using YahooFinanceAPI;
 
     [TestFixture]
     public class HistoricalTests
     {
-        private static string symbol = "O39.SI";
+        private const string Symbol = "O39.SI";
 
         [Test]
-        public void GetDividendAsyncTest()
+        public async Task GetDividendAsyncTest()
         {
-            var dividends = Historical.GetDividendAsync(symbol, DateTime.Now.AddYears(-2), DateTime.Now).Result;
+            var dividends = await Historical.GetDividendAsync(Symbol, DateTime.Now.AddYears(-2), DateTime.Now).ConfigureAwait(false);
 
             Assert.NotNull(dividends);
             Assert.IsTrue(dividends.Any());
@@ -21,9 +24,9 @@
         }
 
         [Test]
-        public void GetPriceAsyncTest()
+        public async Task GetPriceAsyncTest()
         {
-            var prices = Historical.GetPriceAsync(symbol, DateTime.Now.AddYears(-1), DateTime.Now).Result;
+            var prices = await Historical.GetPriceAsync(Symbol, DateTime.Now.AddYears(-1), DateTime.Now).ConfigureAwait(false);
 
             Assert.NotNull(prices);
             Assert.IsTrue(prices.Any());
@@ -31,9 +34,9 @@
         }
 
         [Test]
-        public void GetRawAsyncTest()
+        public async Task GetRawAsyncTest()
         {
-            var raw = Historical.GetRawAsync(symbol, DateTime.Now.AddDays(-20), DateTime.Now, "div|split&filter=split").Result;
+            var raw = await Historical.GetRawAsync(Symbol, DateTime.Now.AddDays(-20), DateTime.Now, "div|split&filter=split").ConfigureAwait(false);
 
             Assert.IsFalse(string.IsNullOrEmpty(raw));
         }
